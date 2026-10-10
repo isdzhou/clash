@@ -1,21 +1,21 @@
 # ============================================================
 # Clash / mihomo 优化配置（基于 clash.md 最佳实践「最小模板」扩展）
-# 使用前：把 proxy-providers 里的 url 换成自己的订阅地址（保留双引号）
-# 订阅地址等同密码，截图/求助/分享前务必删除
+# 这是「规则配置文件」：只含 DNS、策略组、规则，节点来自客户端中另行导入的订阅
+# 订阅地址等同密码，不要写进本文件，也不要截图/分享
 # ============================================================
 
 # ---------- 常规设置 ----------
 mode: rule
-log-level: warning # 排错时临时改 info，用完改回
-ipv6: true # 网络/节点不支持 IPv6 时改为 false
-unified-delay: true # 统一延迟计算，测速更直观
-tcp-concurrent: true # TCP 并发连接，选最快的 IP
+log-level: warning          # 排错时临时改 info，用完改回
+ipv6: true                  # 网络/节点不支持 IPv6 时改为 false
+unified-delay: true         # 统一延迟计算，测速更直观
+tcp-concurrent: true        # TCP 并发连接，选最快的 IP
 # 不写 mixed-port / allow-lan / external-controller / tun：
 # 由 Clash App 在 Apple 平台上管理，避免扩大攻击面
 
 profile:
-  store-selected: true # 记住手动选择的节点
-  store-fake-ip: true # 记住 Fake-IP 映射
+  store-selected: true      # 记住手动选择的节点
+  store-fake-ip: true       # 记住 Fake-IP 映射
 
 # ---------- DNS ----------
 dns:
@@ -25,7 +25,7 @@ dns:
   fake-ip-range: 198.18.0.1/16
   fake-ip-filter-mode: blacklist
   use-hosts: true
-  respect-rules: true # DNS 查询也遵循分流规则（国外 DNS 走代理，防泄漏）
+  respect-rules: true       # DNS 查询也遵循分流规则（国外 DNS 走代理，防泄漏）
 
   # 仅用于解析下面的 DNS 域名本身，必须是 IP
   default-nameserver:
@@ -53,13 +53,13 @@ dns:
     - "+.local"
     - "+.localdomain"
     - "+.home.arpa"
-    - "time.*.com" # 时间同步
+    - "time.*.com"          # 时间同步
     - "ntp.*.com"
     - "+.pool.ntp.org"
-    - "+.stun.*.*" # STUN / WebRTC
+    - "+.stun.*.*"          # STUN / WebRTC
     - "stun.*.*"
-    - "+.push.apple.com" # Apple 推送
-    - "+.srv.nintendo.net" # 游戏主机联机
+    - "+.push.apple.com"    # Apple 推送
+    - "+.srv.nintendo.net"  # 游戏主机联机
     - "+.msftconnecttest.com"
     - "+.msftncsi.com"
 
@@ -81,22 +81,10 @@ sniffer:
     - "+.push.apple.com"
     - "dlg.io.mi.com"
 
-# ---------- 订阅 / 节点来源 ----------
-# 单订阅；需要多个来源时，复制 provider-a 块并在各策略组 use 中添加
-proxy-providers:
-  provider-a:
-    type: http
-    url: "https://example.com/profile-a.yaml" # ← 换成自己的订阅
-    path: ./providers/provider-a.yaml
-    interval: 21600
-    exclude-filter: "(?i)剩余|流量|到期|过期|官网|套餐|重置|expire|traffic|reset" # 过滤订阅里的“信息节点”
-    health-check:
-      enable: true
-      url: "https://www.gstatic.com/generate_204"
-      interval: 600
-      lazy: true
-    override:
-      additional-prefix: "[A] "
+# ---------- 节点来源 ----------
+# 本文件是「规则配置文件」：不含节点，也不自带订阅地址。
+# 节点由客户端里单独导入的订阅提供，下面的策略组用 include-all-proxies 自动收录；
+# exclude-filter 用来过滤订阅里的“剩余流量 / 到期时间”这类信息节点。
 
 # ---------- 策略组 ----------
 proxy-groups:
@@ -111,14 +99,15 @@ proxy-groups:
       - US-Auto
       - TW-Auto
       - DIRECT
-    use:
-      - provider-a
+    include-all-proxies: true
+    exclude-filter: "(?i)剩余|流量|到期|过期|官网|套餐|重置|expire|traffic|reset"
 
   # 全部节点自动测速，选最快
   - name: AUTO
     type: url-test
-    use:
-      - provider-a
+    include-all-proxies: true
+    exclude-filter: "(?i)剩余|流量|到期|过期|官网|套餐|重置|expire|traffic|reset"
+    lazy: true
     url: "https://www.gstatic.com/generate_204"
     interval: 300
     tolerance: 50
@@ -126,40 +115,45 @@ proxy-groups:
   # 地区自动组（节点名需含对应关键词才会进入）
   - name: HK-Auto
     type: url-test
-    use: [provider-a]
+    include-all-proxies: true
     filter: '(?i)香港|\bHK\b|Hong ?Kong|🇭🇰'
+    lazy: true
     url: "https://www.gstatic.com/generate_204"
     interval: 300
     tolerance: 50
 
   - name: JP-Auto
     type: url-test
-    use: [provider-a]
+    include-all-proxies: true
     filter: '(?i)日本|东京|大阪|\bJP\b|Japan|🇯🇵'
+    lazy: true
     url: "https://www.gstatic.com/generate_204"
     interval: 300
     tolerance: 50
 
   - name: SG-Auto
     type: url-test
-    use: [provider-a]
+    include-all-proxies: true
     filter: '(?i)新加坡|狮城|\bSG\b|Singapore|🇸🇬'
+    lazy: true
     url: "https://www.gstatic.com/generate_204"
     interval: 300
     tolerance: 50
 
   - name: US-Auto
     type: url-test
-    use: [provider-a]
+    include-all-proxies: true
     filter: '(?i)美国|洛杉矶|圣何塞|\bUS\b|United ?States|America|🇺🇸'
+    lazy: true
     url: "https://www.gstatic.com/generate_204"
     interval: 300
     tolerance: 50
 
   - name: TW-Auto
     type: url-test
-    use: [provider-a]
+    include-all-proxies: true
     filter: '(?i)台湾|台灣|\bTW\b|Taiwan|🇹🇼'
+    lazy: true
     url: "https://www.gstatic.com/generate_204"
     interval: 300
     tolerance: 50
