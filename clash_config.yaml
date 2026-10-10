@@ -101,6 +101,7 @@ proxy-groups:
   - name: AUTO
     type: url-test
     include-all: true
+    proxies: [REJECT]  # 占位：配置库单独校验时不报“未找到节点”；REJECT 测速必失败，不会被选中，真实节点来自节点库
     exclude-filter: "(?i)剩余|流量|到期|过期|官网|套餐|重置|expire|traffic|reset"
     lazy: true
     url: "https://www.gstatic.com/generate_204"
@@ -111,6 +112,7 @@ proxy-groups:
   - name: HK-Auto
     type: url-test
     include-all: true
+    proxies: [REJECT]
     filter: '(?i)香港|\bHK\b|Hong ?Kong|🇭🇰'
     lazy: true
     url: "https://www.gstatic.com/generate_204"
@@ -120,6 +122,7 @@ proxy-groups:
   - name: JP-Auto
     type: url-test
     include-all: true
+    proxies: [REJECT]
     filter: '(?i)日本|东京|大阪|\bJP\b|Japan|🇯🇵'
     lazy: true
     url: "https://www.gstatic.com/generate_204"
@@ -129,6 +132,7 @@ proxy-groups:
   - name: SG-Auto
     type: url-test
     include-all: true
+    proxies: [REJECT]
     filter: '(?i)新加坡|狮城|\bSG\b|Singapore|🇸🇬'
     lazy: true
     url: "https://www.gstatic.com/generate_204"
@@ -138,6 +142,7 @@ proxy-groups:
   - name: US-Auto
     type: url-test
     include-all: true
+    proxies: [REJECT]
     filter: '(?i)美国|洛杉矶|圣何塞|\bUS\b|United ?States|America|🇺🇸'
     lazy: true
     url: "https://www.gstatic.com/generate_204"
@@ -147,6 +152,7 @@ proxy-groups:
   - name: TW-Auto
     type: url-test
     include-all: true
+    proxies: [REJECT]
     filter: '(?i)台湾|台灣|\bTW\b|Taiwan|🇹🇼'
     lazy: true
     url: "https://www.gstatic.com/generate_204"
