@@ -9,6 +9,7 @@ proxy-groups:
   # 日常总出口：自动 / 地区 / 手动选节点
   - name: PROXY
     type: select
+    icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Final.png
     proxies:
       - AUTO
       - HK-Auto
@@ -23,6 +24,7 @@ proxy-groups:
   # 全部节点自动测速，选最快
   - name: AUTO
     type: url-test
+    icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Global.png
     include-all: true
     exclude-filter: "(?i)剩余|流量|到期|过期|官网|套餐|重置|expire|traffic|reset"
     lazy: true
@@ -33,6 +35,7 @@ proxy-groups:
   # 地区自动组（节点名需含对应关键词才会进入）
   - name: HK-Auto
     type: url-test
+    icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Hong_Kong.png
     include-all: true
     filter: '(?i)香港|\bHK\b|Hong ?Kong|🇭🇰'
     lazy: true
@@ -42,6 +45,7 @@ proxy-groups:
 
   - name: JP-Auto
     type: url-test
+    icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Japan.png
     include-all: true
     filter: '(?i)日本|东京|大阪|\bJP\b|Japan|🇯🇵'
     lazy: true
@@ -51,6 +55,7 @@ proxy-groups:
 
   - name: SG-Auto
     type: url-test
+    icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Singapore.png
     include-all: true
     filter: '(?i)新加坡|狮城|\bSG\b|Singapore|🇸🇬'
     lazy: true
@@ -60,6 +65,7 @@ proxy-groups:
 
   - name: US-Auto
     type: url-test
+    icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/United_States.png
     include-all: true
     filter: '(?i)美国|洛杉矶|圣何塞|\bUS\b|United ?States|America|🇺🇸'
     lazy: true
@@ -69,6 +75,7 @@ proxy-groups:
 
   - name: TW-Auto
     type: url-test
+    icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Taiwan.png
     include-all: true
     filter: '(?i)台湾|台灣|\bTW\b|Taiwan|🇹🇼'
     lazy: true
@@ -79,18 +86,22 @@ proxy-groups:
   # 按服务分组（彼此独立，切换 PROXY 不会覆盖它们）
   - name: AI
     type: select
+    icon: https://fastly.jsdelivr.net/gh/shindgewongxj/WHATSINStash/icon/openai.png
     proxies: [US-Auto, JP-Auto, SG-Auto, PROXY]
 
   - name: Streaming
     type: select
+    icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Netflix.png
     proxies: [PROXY, HK-Auto, JP-Auto, SG-Auto, US-Auto, TW-Auto]
 
   - name: Telegram
     type: select
+    icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Telegram.png
     proxies: [PROXY, SG-Auto, HK-Auto, US-Auto]
 
   - name: Apple
     type: select
+    icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Apple.png
     proxies: [DIRECT, PROXY]
 
 # ---------- 规则集 ----------
