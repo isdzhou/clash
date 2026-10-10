@@ -1,87 +1,10 @@
 # ============================================================
-# 配置库：通用设置 / DNS / 嗅探 / 策略组 / 路由规则
-# 依赖：节点库（proxy-providers 或 proxies）、规则库（rule-providers）
-# 策略组用 include-all: true，自动收录节点库里的全部节点与订阅
+# 规则库：策略组（proxy-groups）+ 规则集（rule-providers，全部 MRS）
+# 配置库的 rules 通过策略组名和规则集名引用本文件，名称请勿改动
 # ============================================================
 
-# ---------- 常规设置 ----------
-mode: rule
-log-level: warning          # 排错时临时改 info，用完改回
-ipv6: true                  # 网络/节点不支持 IPv6 时改为 false
-unified-delay: true         # 统一延迟计算，测速更直观
-tcp-concurrent: true        # TCP 并发连接，选最快的 IP
-# 不写 mixed-port / allow-lan / external-controller / tun：
-# 由 Clash App 在 Apple 平台上管理，避免扩大攻击面
-
-profile:
-  store-selected: true      # 记住手动选择的节点
-  store-fake-ip: true       # 记住 Fake-IP 映射
-
-# ---------- DNS ----------
-dns:
-  enable: true
-  ipv6: true
-  enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
-  fake-ip-filter-mode: blacklist
-  use-hosts: true
-  respect-rules: true       # DNS 查询也遵循分流规则（国外 DNS 走代理，防泄漏）
-
-  # 仅用于解析下面的 DNS 域名本身，必须是 IP
-  default-nameserver:
-    - 223.5.5.5
-    - 119.29.29.29
-
-  # 默认解析器：境外 DoH（respect-rules 下会经代理发出）
-  nameserver:
-    - https://cloudflare-dns.com/dns-query
-    - https://dns.google/dns-query
-
-  # 解析「节点服务器域名」专用，走直连国内 DNS，避免鸡生蛋问题
-  proxy-server-nameserver:
-    - https://dns.alidns.com/dns-query
-    - https://doh.pub/dns-query
-
-  # 国内域名走国内 DNS，得到更优的 CDN 解析结果
-  nameserver-policy:
-    "rule-set:cn":
-      - https://dns.alidns.com/dns-query
-      - https://doh.pub/dns-query
-
-  fake-ip-filter:
-    - "+.lan"
-    - "+.local"
-    - "+.localdomain"
-    - "+.home.arpa"
-    - "time.*.com"          # 时间同步
-    - "ntp.*.com"
-    - "+.pool.ntp.org"
-    - "+.stun.*.*"          # STUN / WebRTC
-    - "stun.*.*"
-    - "+.push.apple.com"    # Apple 推送
-    - "+.srv.nintendo.net"  # 游戏主机联机
-    - "+.msftconnecttest.com"
-    - "+.msftncsi.com"
-
-# ---------- 域名嗅探 ----------
-sniffer:
-  enable: true
-  force-dns-mapping: true
-  parse-pure-ip: true
-  override-destination: true
-  sniff:
-    HTTP:
-      ports: [80, 8080-8880]
-    TLS:
-      ports: [443, 8443]
-    QUIC:
-      ports: [443, 8443]
-  skip-domain:
-    - "Mijia Cloud"
-    - "+.push.apple.com"
-    - "dlg.io.mi.com"
-
 # ---------- 策略组 ----------
+# include-all: true 自动收录节点库里的全部节点与订阅；exclude-filter 过滤“剩余流量/到期时间”等信息节点
 proxy-groups:
   # 日常总出口：自动 / 地区 / 手动选节点
   - name: PROXY
@@ -101,7 +24,6 @@ proxy-groups:
   - name: AUTO
     type: url-test
     include-all: true
-    proxies: [REJECT]  # 占位：配置库单独校验时不报“未找到节点”；REJECT 测速必失败，不会被选中，真实节点来自节点库
     exclude-filter: "(?i)剩余|流量|到期|过期|官网|套餐|重置|expire|traffic|reset"
     lazy: true
     url: "https://www.gstatic.com/generate_204"
@@ -112,7 +34,6 @@ proxy-groups:
   - name: HK-Auto
     type: url-test
     include-all: true
-    proxies: [REJECT]
     filter: '(?i)香港|\bHK\b|Hong ?Kong|🇭🇰'
     lazy: true
     url: "https://www.gstatic.com/generate_204"
@@ -122,7 +43,6 @@ proxy-groups:
   - name: JP-Auto
     type: url-test
     include-all: true
-    proxies: [REJECT]
     filter: '(?i)日本|东京|大阪|\bJP\b|Japan|🇯🇵'
     lazy: true
     url: "https://www.gstatic.com/generate_204"
@@ -132,7 +52,6 @@ proxy-groups:
   - name: SG-Auto
     type: url-test
     include-all: true
-    proxies: [REJECT]
     filter: '(?i)新加坡|狮城|\bSG\b|Singapore|🇸🇬'
     lazy: true
     url: "https://www.gstatic.com/generate_204"
@@ -142,7 +61,6 @@ proxy-groups:
   - name: US-Auto
     type: url-test
     include-all: true
-    proxies: [REJECT]
     filter: '(?i)美国|洛杉矶|圣何塞|\bUS\b|United ?States|America|🇺🇸'
     lazy: true
     url: "https://www.gstatic.com/generate_204"
@@ -152,7 +70,6 @@ proxy-groups:
   - name: TW-Auto
     type: url-test
     include-all: true
-    proxies: [REJECT]
     filter: '(?i)台湾|台灣|\bTW\b|Taiwan|🇹🇼'
     lazy: true
     url: "https://www.gstatic.com/generate_204"
@@ -176,38 +93,91 @@ proxy-groups:
     type: select
     proxies: [DIRECT, PROXY]
 
-# ---------- 路由规则（自上而下，首条命中即生效） ----------
-rules:
-  # 1. 局域网 / 本机直连
-  - RULE-SET,private,DIRECT
-  - IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
-  - IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
-  - IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
-  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
-  - IP-CIDR6,fc00::/7,DIRECT,no-resolve
-
-  # 2. Apple 推送直连（避免推送延迟/掉线）
-  - DOMAIN-SUFFIX,push.apple.com,DIRECT
-
-  # 3. 广告拦截
-  - RULE-SET,ads,REJECT
-
-  # 4. 明确的海外服务
-  - RULE-SET,openai,AI
-  - DOMAIN-SUFFIX,anthropic.com,AI
-  - DOMAIN-SUFFIX,claude.ai,AI
-  - DOMAIN-SUFFIX,claude.com,AI
-  - RULE-SET,telegram,Telegram
-  - RULE-SET,telegram-ip,Telegram,no-resolve
-  - RULE-SET,youtube,Streaming
-  - RULE-SET,netflix,Streaming
-  - RULE-SET,github,PROXY
-  - RULE-SET,apple,Apple
-  - RULE-SET,geolocation-not-cn,PROXY
-
-  # 5. 中国大陆直连
-  - RULE-SET,cn,DIRECT
-  - RULE-SET,cn-ip,DIRECT,no-resolve
-
-  # 6. 兜底
-  - MATCH,PROXY
+# ---------- 规则集 ----------
+# MRS 仅支持 domain / ipcidr；behavior、format 必须与文件实际内容一致
+# 使用 jsDelivr 镜像，国内网络比 raw.githubusercontent.com 稳定
+rule-providers:
+  private:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/private.mrs"
+    path: ./ruleset/private.mrs
+    interval: 86400
+  ads:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/category-ads-all.mrs"
+    path: ./ruleset/ads.mrs
+    interval: 86400
+  openai:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/openai.mrs"
+    path: ./ruleset/openai.mrs
+    interval: 86400
+  telegram:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/telegram.mrs"
+    path: ./ruleset/telegram.mrs
+    interval: 86400
+  telegram-ip:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geoip/telegram.mrs"
+    path: ./ruleset/telegram-ip.mrs
+    interval: 86400
+  youtube:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/youtube.mrs"
+    path: ./ruleset/youtube.mrs
+    interval: 86400
+  netflix:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/netflix.mrs"
+    path: ./ruleset/netflix.mrs
+    interval: 86400
+  github:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/github.mrs"
+    path: ./ruleset/github.mrs
+    interval: 86400
+  apple:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/apple.mrs"
+    path: ./ruleset/apple.mrs
+    interval: 86400
+  geolocation-not-cn:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/geolocation-!cn.mrs"
+    path: ./ruleset/geolocation-not-cn.mrs
+    interval: 86400
+  cn:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/cn.mrs"
+    path: ./ruleset/cn.mrs
+    interval: 86400
+  cn-ip:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geoip/cn.mrs"
+    path: ./ruleset/cn-ip.mrs
+    interval: 86400
