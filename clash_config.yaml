@@ -1,6 +1,6 @@
 # ============================================================
-# 规则库：策略组（proxy-groups）+ 规则集（rule-providers，全部 MRS）
-# 配置库的 rules 通过策略组名和规则集名引用本文件，名称请勿改动
+# 规则库：策略组（proxy-groups）+ 规则集（rule-providers，全部 MRS）+ 路由规则（rules）
+# 规则集名、策略组名被 rules 和配置库的 DNS 引用，名称请勿改动
 # ============================================================
 
 # ---------- 策略组 ----------
@@ -181,3 +181,39 @@ rule-providers:
     url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geoip/cn.mrs"
     path: ./ruleset/cn-ip.mrs
     interval: 86400
+
+# ---------- 路由规则（自上而下，首条命中即生效） ----------
+rules:
+  # 1. 局域网 / 本机直连
+  - RULE-SET,private,DIRECT
+  - IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
+  - IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
+  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR6,fc00::/7,DIRECT,no-resolve
+
+  # 2. Apple 推送直连（避免推送延迟/掉线）
+  - DOMAIN-SUFFIX,push.apple.com,DIRECT
+
+  # 3. 广告拦截
+  - RULE-SET,ads,REJECT
+
+  # 4. 明确的海外服务
+  - RULE-SET,openai,AI
+  - DOMAIN-SUFFIX,anthropic.com,AI
+  - DOMAIN-SUFFIX,claude.ai,AI
+  - DOMAIN-SUFFIX,claude.com,AI
+  - RULE-SET,telegram,Telegram
+  - RULE-SET,telegram-ip,Telegram,no-resolve
+  - RULE-SET,youtube,Streaming
+  - RULE-SET,netflix,Streaming
+  - RULE-SET,github,PROXY
+  - RULE-SET,apple,Apple
+  - RULE-SET,geolocation-not-cn,PROXY
+
+  # 5. 中国大陆直连
+  - RULE-SET,cn,DIRECT
+  - RULE-SET,cn-ip,DIRECT,no-resolve
+
+  # 6. 兜底
+  - MATCH,PROXY
