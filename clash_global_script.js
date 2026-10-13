@@ -12,10 +12,11 @@
  *  5. 默认不下载 zashboard 面板(需要时才开启)
  *  6. 远程控制端口直连规则改为开关(默认开启,与原版行为一致),并去掉重复项
  *  7. 修复 enable 永远为 true 的问题;修复无 proxies 字段时 push 报错
- *  8. 修复 Pixiv 测速地址误用 Spotify 的问题
- *  9. 给 GEOIP,telegram 以及含 IP 条目的 RULE-SET 补上 no-resolve,
- *     避免规则模式下内核为匹配 IP 规则而在本地解析域名(DNS 泄露来源)
- * 10. 新增可开关的 STUN/WebRTC UDP 分流规则(proxyStunUdp),只让 STUN 流量走代理
+ *  8. 给 GEOIP,telegram 补上 no-resolve,避免规则模式下本地解析域名(DNS 泄露来源)
+ *  9. 新增可开关的 STUN/WebRTC UDP 分流规则(proxyStunUdp),只让 STUN 流量走代理
+ * 10. 精简策略组:删除 Pixiv / HBO / Hulu / Prime Video / Disney+ / Tiktok / NETFLIX /
+ *     Line / WhatsApp / 日本网站 / 巴哈姆特 / 哔哩哔哩东南亚 / 港澳台媒体 / 游戏专用,
+ *     只保留常用的 AI、YouTube、Spotify、Telegram、Github、谷歌、微软、苹果、广告过滤
  */
 
 // ===================== 用户自定义区 =====================
@@ -93,10 +94,6 @@ const args = {
   ),
 }
 
-/**
- * 如果是直接在软件中粘贴脚本的,就手动修改下面这几个变量实现自定义配置
- * (args 已与 defaultArgs 合并,这里不再使用 `|| 默认值`,避免 false 被误判)
- */
 let {
   enable,
   ruleSet, // 支持 'all' 或 'openai;youtube;ads' 这种格式(分号分隔)
@@ -111,7 +108,6 @@ excludeHighPercentage = !!excludeHighPercentage
 
 /**
  * 分流规则配置,会自动生成对应的策略组
- * 设置的时候可遵循“最小,可用”原则,把自己不需要的规则全禁用掉,提高效率
  * true = 启用
  * false = 禁用
  */
@@ -121,24 +117,9 @@ let ruleOptions = {
   github: false,
   google: false,
   openai: false,
-  spotify: false,
   youtube: false,
-  bahamut: false,
-  netflix: false,
-  tiktok: false,
-  disney: false,
-  pixiv: false,
-  hbo: false,
-  mediaHMT: false,
-  biliintl: false,
-  tvb: false,
-  hulu: false,
-  primevideo: false,
+  spotify: false,
   telegram: false,
-  line: false,
-  whatsapp: false,
-  games: false,
-  japan: false,
   ads: false,
 }
 
@@ -184,7 +165,6 @@ if (proxyStunUdp) {
 rules.push(
   'GEOSITE,category-collaborate-cn,直连',
   'GEOSITE,category-container,默认节点',
-  // 'GEOSITE,category-netdisk-!cn,默认节点',
   'RULE-SET,applications,下载软件,no-resolve'
 )
 
@@ -320,64 +300,6 @@ const serviceConfigs = [
     rules: ['GEOSITE,youtube,YouTube'],
   },
   {
-    key: 'mediaHMT',
-    name: '港澳台媒体',
-    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/TVB.png',
-    url: 'https://viu.tv/',
-    rules: ['RULE-SET,hk-media,港澳台媒体,no-resolve', 'RULE-SET,tw-media,港澳台媒体,no-resolve'],
-    providers: [
-      {
-        key: 'hk-media',
-        url: 'https://ruleset.skk.moe/Clash/non_ip/stream_hk.txt',
-        path: './ruleset/ruleset.skk.moe/stream_hk.txt',
-        format: 'text',
-        behavior: 'classical',
-      },
-      {
-        key: 'tw-media',
-        url: 'https://ruleset.skk.moe/Clash/non_ip/stream_tw.txt',
-        path: './ruleset/ruleset.skk.moe/stream_tw.txt',
-        format: 'text',
-        behavior: 'classical',
-      },
-    ],
-  },
-  {
-    key: 'biliintl',
-    name: '哔哩哔哩东南亚',
-    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/bilibili_3.png',
-    url: 'https://www.bilibili.tv/',
-    rules: ['GEOSITE,biliintl,哔哩哔哩东南亚'],
-  },
-  {
-    key: 'bahamut',
-    name: '巴哈姆特',
-    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Bahamut.png',
-    url: 'https://ani.gamer.com.tw/ajax/getdeviceid.php',
-    rules: ['GEOSITE,bahamut,巴哈姆特'],
-  },
-  {
-    key: 'disney',
-    name: 'Disney+',
-    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Disney+.png',
-    url: 'https://disney.api.edge.bamgrid.com/devices',
-    rules: ['GEOSITE,disney,Disney+'],
-  },
-  {
-    key: 'netflix',
-    name: 'NETFLIX',
-    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Netflix.png',
-    url: 'https://api.fast.com/netflix/speedtest/v2?https=true',
-    rules: ['GEOSITE,netflix,NETFLIX'],
-  },
-  {
-    key: 'tiktok',
-    name: 'Tiktok',
-    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/TikTok.png',
-    url: 'https://www.tiktok.com/',
-    rules: ['GEOSITE,tiktok,Tiktok'],
-  },
-  {
     key: 'spotify',
     name: 'Spotify',
     icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Spotify.png',
@@ -385,59 +307,11 @@ const serviceConfigs = [
     rules: ['GEOSITE,spotify,Spotify'],
   },
   {
-    key: 'pixiv',
-    name: 'Pixiv',
-    icon: 'https://play-lh.googleusercontent.com/8pFuLOHF62ADcN0ISUAyEueA5G8IF49mX_6Az6pQNtokNVHxIVbS1L2NM62H-k02rLM=w240-h480-rw',
-    url: 'https://www.pixiv.net/favicon.ico', // 原版误用了 Spotify 的地址
-    rules: ['GEOSITE,pixiv,Pixiv'],
-  },
-  {
-    key: 'hbo',
-    name: 'HBO',
-    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/HBO.png',
-    url: 'https://www.hbo.com/favicon.ico',
-    rules: ['GEOSITE,hbo,HBO'],
-  },
-  {
-    key: 'primevideo',
-    name: 'Prime Video',
-    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Prime_Video.png',
-    url: 'https://m.media-amazon.com/images/G/01/digital/video/web/logo-min-remaster.png',
-    rules: ['GEOSITE,primevideo,Prime Video'],
-  },
-  {
-    key: 'hulu',
-    name: 'Hulu',
-    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Hulu.png',
-    url: 'https://auth.hulu.com/v4/web/password/authenticate',
-    rules: ['GEOSITE,hulu,Hulu'],
-  },
-  {
     key: 'telegram',
     name: 'Telegram',
     icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Telegram.png',
     url: 'https://www.telegram.org/img/website_icon.svg',
     rules: ['GEOIP,telegram,Telegram,no-resolve'],
-  },
-  {
-    key: 'whatsapp',
-    name: 'WhatsApp',
-    icon: 'https://static.whatsapp.net/rsrc.php/v3/yP/r/rYZqPCBaG70.png',
-    url: 'https://web.whatsapp.com/data/manifest.json',
-    rules: ['GEOSITE,whatsapp,WhatsApp'],
-  },
-  {
-    key: 'line',
-    name: 'Line',
-    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Line.png',
-    url: 'https://line.me/page-data/app-data.json',
-    rules: ['GEOSITE,line,Line'],
-  },
-  {
-    key: 'games',
-    name: '游戏专用',
-    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Game.png',
-    rules: ['GEOSITE,category-games@cn,国内网站', 'GEOSITE,category-games,游戏专用'],
   },
   {
     key: 'ads',
@@ -482,22 +356,6 @@ const serviceConfigs = [
     icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Microsoft.png',
     url: 'https://www.msftconnecttest.com/connecttest.txt',
     rules: ['GEOSITE,microsoft@cn,国内网站', 'GEOSITE,microsoft,微软服务'],
-  },
-  {
-    key: 'japan',
-    name: '日本网站',
-    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/JP.png',
-    url: 'https://r.r10s.jp/com/img/home/logo/touch.png',
-    rules: ['RULE-SET,category-bank-jp,日本网站', 'GEOIP,jp,日本网站,no-resolve'],
-    providers: [
-      {
-        key: 'category-bank-jp',
-        url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-bank-jp.mrs',
-        path: './ruleset/MetaCubeX/category-bank-jp.mrs',
-        format: 'mrs',
-        behavior: 'domain',
-      },
-    ],
   },
 ]
 
@@ -678,14 +536,9 @@ function main(config) {
         })
       }
 
-      let groupProxies
-      if (svc.reject) {
-        groupProxies = ['拒绝', '直连', '默认节点']
-      } else if (svc.key === 'biliintl' || svc.key === 'bahamut') {
-        groupProxies = ['默认节点', '直连', ...regionGroupNames]
-      } else {
-        groupProxies = ['默认节点', ...regionGroupNames, '直连']
-      }
+      const groupProxies = svc.reject
+        ? ['拒绝', '直连', '默认节点']
+        : ['默认节点', ...regionGroupNames, '直连']
 
       functionalGroups.push({
         ...groupBaseOption,
