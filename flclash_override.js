@@ -46,6 +46,14 @@ const main = (config) => {
     nameserver: ["https://dns.alidns.com/dns-query", "https://doh.pub/dns-query"],
     fallback: ["https://1.1.1.1/dns-query", "https://dns.google/dns-query"],
     "fallback-filter": { geoip: true, "geoip-code": "CN", ipcidr: ["240.0.0.0/4"] },
+    // Google Play 相关域名使用海外 DoH 解析,避免拿到国内 CDN 的错误结果
+    "nameserver-policy": {
+      "+.gvt1.com": ["https://1.1.1.1/dns-query", "https://dns.google/dns-query"],
+      "+.gvt2.com": ["https://1.1.1.1/dns-query", "https://dns.google/dns-query"],
+      "+.googleapis.com": ["https://1.1.1.1/dns-query", "https://dns.google/dns-query"],
+      "dl.google.com": ["https://1.1.1.1/dns-query", "https://dns.google/dns-query"],
+      "+.play.google.com": ["https://1.1.1.1/dns-query", "https://dns.google/dns-query"],
+    },
   };
 
   /* ---------- 流量嗅探 ---------- */
@@ -152,6 +160,17 @@ const main = (config) => {
     "RULE-SET,ads,🛑 广告拦截",
     "RULE-SET,private,🎯 全球直连",
     "RULE-SET,private_ip,🎯 全球直连,no-resolve",
+
+    // Google Play 商店 / 应用下载:强制走代理,放在国内规则之前
+    "DOMAIN-SUFFIX,gvt1.com,🚀 节点选择",
+    "DOMAIN-SUFFIX,gvt2.com,🚀 节点选择",
+    "DOMAIN-SUFFIX,googleapis.com,🚀 节点选择",
+    "DOMAIN-SUFFIX,googleusercontent.com,🚀 节点选择",
+    "DOMAIN,dl.google.com,🚀 节点选择",
+    "DOMAIN-SUFFIX,play.google.com,🚀 节点选择",
+    "DOMAIN-SUFFIX,android.clients.google.com,🚀 节点选择",
+    "DOMAIN-SUFFIX,gstatic.com,🚀 节点选择",
+
     "RULE-SET,openai,🤖 AI 服务",
     "RULE-SET,anthropic,🤖 AI 服务",
     "RULE-SET,google-gemini,🤖 AI 服务",
