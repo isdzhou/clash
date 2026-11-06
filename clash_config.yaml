@@ -1,12 +1,12 @@
+
 # ============================================================
-# 规则库：策略组（proxy-groups）+ 规则集（rule-providers，全部 MRS）+ 路由规则（rules）
-# 规则集名、策略组名被 rules 和配置库的 DNS 引用，名称请勿改动
+# 规则库：策略组 + 规则集 + 路由规则
+# 新增：Microsoft、Spotify、Spotify 广告拦截
 # ============================================================
 
 # ---------- 策略组 ----------
-# include-all: true 自动收录节点库里的全部节点与订阅；exclude-filter 过滤“剩余流量/到期时间”等信息节点
 proxy-groups:
-  # 日常总出口：自动 / 地区 / 手动选节点
+  # 日常总出口
   - name: PROXY
     type: select
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Final.png
@@ -21,7 +21,7 @@ proxy-groups:
     include-all: true
     exclude-filter: "(?i)剩余|流量|到期|过期|官网|套餐|重置|expire|traffic|reset"
 
-  # 全部节点自动测速，选最快
+  # 全部节点自动测速
   - name: AUTO
     type: url-test
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Global.png
@@ -32,7 +32,7 @@ proxy-groups:
     interval: 300
     tolerance: 50
 
-  # 地区自动组（节点名需含对应关键词才会进入）
+  # 地区自动组
   - name: HK-Auto
     type: url-test
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Hong_Kong.png
@@ -83,7 +83,7 @@ proxy-groups:
     interval: 300
     tolerance: 50
 
-  # 按服务分组（彼此独立，切换 PROXY 不会覆盖它们）
+  # 按服务分组
   - name: AI
     type: select
     icon: https://fastly.jsdelivr.net/gh/shindgewongxj/WHATSINStash/icon/openai.png
@@ -104,9 +104,13 @@ proxy-groups:
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Apple.png
     proxies: [DIRECT, PROXY]
 
+  # 新增：微软独立策略组
+  - name: Microsoft
+    type: select
+    icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Microsoft.png
+    proxies: [PROXY, DIRECT]
+
 # ---------- 规则集 ----------
-# MRS 仅支持 domain / ipcidr；behavior、format 必须与文件实际内容一致
-# 使用 jsDelivr 镜像，国内网络比 raw.githubusercontent.com 稳定
 rule-providers:
   private:
     type: http
@@ -115,6 +119,7 @@ rule-providers:
     url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/private.mrs"
     path: ./ruleset/private.mrs
     interval: 86400
+
   ads:
     type: http
     behavior: domain
@@ -122,6 +127,7 @@ rule-providers:
     url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/category-ads-all.mrs"
     path: ./ruleset/ads.mrs
     interval: 86400
+
   openai:
     type: http
     behavior: domain
@@ -129,6 +135,7 @@ rule-providers:
     url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/openai.mrs"
     path: ./ruleset/openai.mrs
     interval: 86400
+
   telegram:
     type: http
     behavior: domain
@@ -136,6 +143,7 @@ rule-providers:
     url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/telegram.mrs"
     path: ./ruleset/telegram.mrs
     interval: 86400
+
   telegram-ip:
     type: http
     behavior: ipcidr
@@ -143,6 +151,7 @@ rule-providers:
     url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geoip/telegram.mrs"
     path: ./ruleset/telegram-ip.mrs
     interval: 86400
+
   youtube:
     type: http
     behavior: domain
@@ -150,6 +159,7 @@ rule-providers:
     url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/youtube.mrs"
     path: ./ruleset/youtube.mrs
     interval: 86400
+
   netflix:
     type: http
     behavior: domain
@@ -157,6 +167,7 @@ rule-providers:
     url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/netflix.mrs"
     path: ./ruleset/netflix.mrs
     interval: 86400
+
   github:
     type: http
     behavior: domain
@@ -164,6 +175,7 @@ rule-providers:
     url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/github.mrs"
     path: ./ruleset/github.mrs
     interval: 86400
+
   apple:
     type: http
     behavior: domain
@@ -171,6 +183,25 @@ rule-providers:
     url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/apple.mrs"
     path: ./ruleset/apple.mrs
     interval: 86400
+
+  # 新增：Microsoft 官方规则集
+  microsoft:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/microsoft.mrs"
+    path: ./ruleset/microsoft.mrs
+    interval: 86400
+
+  # 新增：Spotify 官方规则集
+  spotify:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/spotify.mrs"
+    path: ./ruleset/spotify.mrs
+    interval: 86400
+
   geolocation-not-cn:
     type: http
     behavior: domain
@@ -178,6 +209,7 @@ rule-providers:
     url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/geolocation-!cn.mrs"
     path: ./ruleset/geolocation-not-cn.mrs
     interval: 86400
+
   cn:
     type: http
     behavior: domain
@@ -185,6 +217,7 @@ rule-providers:
     url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/cn.mrs"
     path: ./ruleset/cn.mrs
     interval: 86400
+
   cn-ip:
     type: http
     behavior: ipcidr
@@ -193,7 +226,8 @@ rule-providers:
     path: ./ruleset/cn-ip.mrs
     interval: 86400
 
-# ---------- 路由规则（自上而下，首条命中即生效） ----------
+# ---------- 路由规则 ----------
+# 自上而下匹配，首条命中即生效
 rules:
   # 1. 局域网 / 本机直连
   - RULE-SET,private,DIRECT
@@ -203,28 +237,47 @@ rules:
   - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
   - IP-CIDR6,fc00::/7,DIRECT,no-resolve
 
-  # 2. Apple 推送直连（避免推送延迟/掉线）
+  # 2. Apple 推送直连
   - DOMAIN-SUFFIX,push.apple.com,DIRECT
 
-  # 3. 广告拦截
+  # 3. Spotify 广告拦截
+  - DOMAIN-SUFFIX,ads-fa.spotify.com,REJECT
+
+  # 4. 全局广告拦截
   - RULE-SET,ads,REJECT
 
-  # 4. 明确的海外服务
+  # 5. 明确的海外服务
+
+  # AI
   - RULE-SET,openai,AI
   - DOMAIN-SUFFIX,anthropic.com,AI
   - DOMAIN-SUFFIX,claude.ai,AI
   - DOMAIN-SUFFIX,claude.com,AI
+
+  # Telegram
   - RULE-SET,telegram,Telegram
   - RULE-SET,telegram-ip,Telegram,no-resolve
+
+  # 视频及音乐
   - RULE-SET,youtube,Streaming
   - RULE-SET,netflix,Streaming
+  - RULE-SET,spotify,Streaming
+
+  # GitHub
   - RULE-SET,github,PROXY
+
+  # Apple
   - RULE-SET,apple,Apple
+
+  # Microsoft
+  - RULE-SET,microsoft,Microsoft
+
+  # 其他海外网站
   - RULE-SET,geolocation-not-cn,PROXY
 
-  # 5. 中国大陆直连
+  # 6. 中国大陆直连
   - RULE-SET,cn,DIRECT
   - RULE-SET,cn-ip,DIRECT,no-resolve
 
-  # 6. 兜底
+  # 7. 兜底
   - MATCH,PROXY
