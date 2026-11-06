@@ -1,6 +1,6 @@
 
 # ============================================================
-# 规则库：策略组 + 规则集 + 路由规则
+# 规则库：策略组 + 规则集（MRS）+ 路由规则
 # 新增：Microsoft、Spotify、Spotify 广告拦截
 # ============================================================
 
@@ -32,7 +32,7 @@ proxy-groups:
     interval: 300
     tolerance: 50
 
-  # 地区自动组
+  # 香港自动测速
   - name: HK-Auto
     type: url-test
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Hong_Kong.png
@@ -43,6 +43,7 @@ proxy-groups:
     interval: 300
     tolerance: 50
 
+  # 日本自动测速
   - name: JP-Auto
     type: url-test
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Japan.png
@@ -53,6 +54,7 @@ proxy-groups:
     interval: 300
     tolerance: 50
 
+  # 新加坡自动测速
   - name: SG-Auto
     type: url-test
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Singapore.png
@@ -63,6 +65,7 @@ proxy-groups:
     interval: 300
     tolerance: 50
 
+  # 美国自动测速
   - name: US-Auto
     type: url-test
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/United_States.png
@@ -73,6 +76,7 @@ proxy-groups:
     interval: 300
     tolerance: 50
 
+  # 台湾自动测速
   - name: TW-Auto
     type: url-test
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Taiwan.png
@@ -83,32 +87,41 @@ proxy-groups:
     interval: 300
     tolerance: 50
 
-  # 按服务分组
+  # AI 服务
   - name: AI
     type: select
     icon: https://fastly.jsdelivr.net/gh/shindgewongxj/WHATSINStash/icon/openai.png
     proxies: [US-Auto, JP-Auto, SG-Auto, PROXY]
 
+  # 流媒体
   - name: Streaming
     type: select
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Netflix.png
     proxies: [PROXY, HK-Auto, JP-Auto, SG-Auto, US-Auto, TW-Auto]
 
+  # Telegram
   - name: Telegram
     type: select
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Telegram.png
     proxies: [PROXY, SG-Auto, HK-Auto, US-Auto]
 
+  # Apple
   - name: Apple
     type: select
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Apple.png
     proxies: [DIRECT, PROXY]
 
-  # 新增：微软独立策略组
+  # Microsoft 独立策略组
   - name: Microsoft
     type: select
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Microsoft.png
     proxies: [PROXY, DIRECT]
+
+  # Spotify 独立策略组
+  - name: Spotify
+    type: select
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Spotify.png
+    proxies: [PROXY, HK-Auto, JP-Auto, SG-Auto, US-Auto, TW-Auto, DIRECT]
 
 # ---------- 规则集 ----------
 rule-providers:
@@ -184,7 +197,7 @@ rule-providers:
     path: ./ruleset/apple.mrs
     interval: 86400
 
-  # 新增：Microsoft 官方规则集
+  # Microsoft 规则集
   microsoft:
     type: http
     behavior: domain
@@ -193,7 +206,7 @@ rule-providers:
     path: ./ruleset/microsoft.mrs
     interval: 86400
 
-  # 新增：Spotify 官方规则集
+  # Spotify 规则集
   spotify:
     type: http
     behavior: domain
@@ -228,6 +241,7 @@ rule-providers:
 
 # ---------- 路由规则 ----------
 # 自上而下匹配，首条命中即生效
+
 rules:
   # 1. 局域网 / 本机直连
   - RULE-SET,private,DIRECT
@@ -246,38 +260,38 @@ rules:
   # 4. 全局广告拦截
   - RULE-SET,ads,REJECT
 
-  # 5. 明确的海外服务
-
-  # AI
+  # 5. AI 服务
   - RULE-SET,openai,AI
   - DOMAIN-SUFFIX,anthropic.com,AI
   - DOMAIN-SUFFIX,claude.ai,AI
   - DOMAIN-SUFFIX,claude.com,AI
 
-  # Telegram
+  # 6. Telegram
   - RULE-SET,telegram,Telegram
   - RULE-SET,telegram-ip,Telegram,no-resolve
 
-  # 视频及音乐
+  # 7. 视频流媒体
   - RULE-SET,youtube,Streaming
   - RULE-SET,netflix,Streaming
-  - RULE-SET,spotify,Streaming
 
-  # GitHub
+  # 8. GitHub
   - RULE-SET,github,PROXY
 
-  # Apple
+  # 9. Apple
   - RULE-SET,apple,Apple
 
-  # Microsoft
+  # 10. Microsoft 独立分流
   - RULE-SET,microsoft,Microsoft
 
-  # 其他海外网站
+  # 11. Spotify 独立分流
+  - RULE-SET,spotify,Spotify
+
+  # 12. 其他海外网站
   - RULE-SET,geolocation-not-cn,PROXY
 
-  # 6. 中国大陆直连
+  # 13. 中国大陆直连
   - RULE-SET,cn,DIRECT
   - RULE-SET,cn-ip,DIRECT,no-resolve
 
-  # 7. 兜底
+  # 14. 兜底
   - MATCH,PROXY
