@@ -1,11 +1,12 @@
-
 # ============================================================
 # 规则库：策略组 + 规则集（MRS）+ 路由规则
-# 新增：Microsoft、Spotify、Spotify 广告拦截
+# Microsoft 独立分流 + Spotify 独立分流 + Spotify 广告拦截
+# 适用：支持 Clash.Meta / Mihomo 规则格式的客户端
 # ============================================================
 
 # ---------- 策略组 ----------
 proxy-groups:
+
   # 日常总出口
   - name: PROXY
     type: select
@@ -91,41 +92,69 @@ proxy-groups:
   - name: AI
     type: select
     icon: https://fastly.jsdelivr.net/gh/shindgewongxj/WHATSINStash/icon/openai.png
-    proxies: [US-Auto, JP-Auto, SG-Auto, PROXY]
+    proxies:
+      - US-Auto
+      - JP-Auto
+      - SG-Auto
+      - PROXY
 
   # 流媒体
   - name: Streaming
     type: select
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Netflix.png
-    proxies: [PROXY, HK-Auto, JP-Auto, SG-Auto, US-Auto, TW-Auto]
+    proxies:
+      - PROXY
+      - HK-Auto
+      - JP-Auto
+      - SG-Auto
+      - US-Auto
+      - TW-Auto
 
   # Telegram
   - name: Telegram
     type: select
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Telegram.png
-    proxies: [PROXY, SG-Auto, HK-Auto, US-Auto]
+    proxies:
+      - PROXY
+      - SG-Auto
+      - HK-Auto
+      - US-Auto
 
   # Apple
   - name: Apple
     type: select
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Apple.png
-    proxies: [DIRECT, PROXY]
+    proxies:
+      - DIRECT
+      - PROXY
 
   # Microsoft 独立策略组
   - name: Microsoft
     type: select
     icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Microsoft.png
-    proxies: [PROXY, DIRECT]
+    proxies:
+      - PROXY
+      - DIRECT
 
   # Spotify 独立策略组
   - name: Spotify
     type: select
     icon: https://cdn.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Spotify.png
-    proxies: [PROXY, HK-Auto, JP-Auto, SG-Auto, US-Auto, TW-Auto, DIRECT]
+    proxies:
+      - PROXY
+      - HK-Auto
+      - JP-Auto
+      - SG-Auto
+      - US-Auto
+      - TW-Auto
+      - DIRECT
+
 
 # ---------- 规则集 ----------
 # MRS 仅支持 domain / ipcidr
+
 rule-providers:
+
   private:
     type: http
     behavior: domain
@@ -240,10 +269,12 @@ rule-providers:
     path: ./ruleset/cn-ip.mrs
     interval: 86400
 
+
 # ---------- 路由规则 ----------
 # 自上而下匹配，首条命中即生效
 
 rules:
+
   # 1. 局域网 / 本机直连
   - RULE-SET,private,DIRECT
   - IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
@@ -256,7 +287,22 @@ rules:
   - DOMAIN-SUFFIX,push.apple.com,DIRECT
 
   # 3. Spotify 广告拦截
-  - DOMAIN-SUFFIX,ads-fa.spotify.com,REJECT-DROP
+  - DOMAIN-SUFFIX,ads-fa.spotify.com,REJECT
+  - DOMAIN-SUFFIX,adeventtracker.spotify.com,REJECT
+  - DOMAIN-SUFFIX,ads-akp.spotify.com,REJECT
+  - DOMAIN-SUFFIX,ad.audio-ak.cdn.spotify.com,REJECT
+  - DOMAIN-SUFFIX,ads-fa.spotify.ads.pubmatic.com,REJECT
+
+  # Spotify 第三方广告域名
+  - DOMAIN-SUFFIX,doubleclick.net,REJECT
+  - DOMAIN-SUFFIX,googlesyndication.com,REJECT
+  - DOMAIN-SUFFIX,googleadservices.com,REJECT
+  - DOMAIN-SUFFIX,googletagservices.com,REJECT
+  - DOMAIN-SUFFIX,pubmatic.com,REJECT
+  - DOMAIN-SUFFIX,adnxs.com,REJECT
+  - DOMAIN-SUFFIX,serving-sys.com,REJECT
+  - DOMAIN-SUFFIX,moatads.com,REJECT
+  - DOMAIN-SUFFIX,scorecardresearch.com,REJECT
 
   # 4. 全局广告拦截
   - RULE-SET,ads,REJECT
