@@ -1,6 +1,8 @@
+
 # ============================================================
 # 规则库：策略组 + 规则集（MRS）+ 路由规则
 # Microsoft 独立分流 + Spotify 独立分流 + Spotify 广告拦截
+# AI 服务统一分流（OpenAI / Claude / Hark）
 # 适用：支持 Clash.Meta / Mihomo 规则格式的客户端
 # ============================================================
 
@@ -88,7 +90,7 @@ proxy-groups:
     interval: 300
     tolerance: 50
 
-  # AI
+  # AI 人工智能统一策略组
   - name: AI
     type: select
     icon: https://fastly.jsdelivr.net/gh/shindgewongxj/WHATSINStash/icon/openai.png
@@ -307,11 +309,21 @@ rules:
   # 4. 全局广告拦截
   - RULE-SET,ads,REJECT
 
-  # 5. AI 服务
+  # 5. AI 服务统一分流
+  # OpenAI / ChatGPT
   - RULE-SET,openai,AI
+  - DOMAIN-SUFFIX,openai.com,AI
+  - DOMAIN-SUFFIX,chatgpt.com,AI
+  - DOMAIN-SUFFIX,oaistatic.com,AI
+  - DOMAIN-SUFFIX,oaiusercontent.com,AI
+
+  # Anthropic / Claude
   - DOMAIN-SUFFIX,anthropic.com,AI
   - DOMAIN-SUFFIX,claude.ai,AI
   - DOMAIN-SUFFIX,claude.com,AI
+
+  # Hark
+  - DOMAIN-SUFFIX,hark.com,AI
 
   # 6. Telegram
   - RULE-SET,telegram,Telegram
