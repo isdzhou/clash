@@ -45,11 +45,29 @@ const main = (config) => {
       "+.stun.*.*",
       "+.stun.*.*.*",
     ],
+    // 仅用于解析下面 DoH 地址本身的域名(必须是纯 IP)
     "default-nameserver": ["223.5.5.5", "119.29.29.29"],
+    // 解析机场节点域名:只能直连解析
     "proxy-server-nameserver": ["https://dns.alidns.com/dns-query", "https://doh.pub/dns-query"],
-    nameserver: ["https://dns.alidns.com/dns-query", "https://doh.pub/dns-query"],
-    fallback: ["https://1.1.1.1/dns-query", "https://dns.google/dns-query"],
-    "fallback-filter": { geoip: true, "geoip-code": "CN", ipcidr: ["240.0.0.0/4"] },
+    // 默认走海外 DoH。respect-rules 下这些查询会按规则走代理,不会把境外域名暴露给本地运营商
+    nameserver: ["https://1.1.1.1/dns-query", "https://dns.google/dns-query"],
+    // 只有国内域名 / 内网域名才用国内 DNS
+    "nameserver-policy": {
+      "geosite:private,cn": ["https://dns.alidns.com/dns-query", "https://doh.pub/dns-query"],
+    },
+    // 出站为 DIRECT 的域名用国内 DNS 解析
+    "direct-nameserver": ["https://dns.alidns.com/dns-query", "https://doh.pub/dns-query"],
+    "direct-nameserver-follow-policy": false,
+    // 不再使用 fallback / fallback-filter,避免国内外 DNS 并发查询造成泄露
+  };
+
+  /* ---------- TUN 防 DNS 泄露 ---------- */
+  // 不写 enable,开关仍由 FlClash 界面控制;这里只补充防泄露相关参数
+  config["tun"] = {
+    ...(config["tun"] || {}),
+    "auto-route": true,
+    "strict-route": true, // 严格路由:阻止流量绕过虚拟网卡(含 Windows 多网卡并发 DNS)
+    "dns-hijack": ["any:53", "tcp://any:53"], // 劫持所有 53 端口 DNS 请求
   };
 
   /* ---------- 流量嗅探 ---------- */
