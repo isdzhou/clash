@@ -119,6 +119,8 @@ const main = (config) => {
     { name: "🤖 AI 服务", type: "select", proxies: ["🚀 节点选择", ...regionNames, "🚀 手动切换"] },
     { name: "📲 Telegram", type: "select", proxies: ["🚀 节点选择", ...regionNames, "🚀 手动切换"] },
     { name: "🎬 国际媒体", type: "select", proxies: ["🚀 节点选择", ...regionNames, "🚀 手动切换"] },
+    // Google Play 独立分组:下载大文件时建议固定一个稳定节点,避免自动切换节点导致下载中断
+    { name: "📦 Google Play", type: "select", proxies: ["🚀 节点选择", ...regionNames, "🚀 手动切换"] },
     { name: "🍎 苹果服务", type: "select", proxies: ["DIRECT", "🚀 节点选择"] },
     { name: "Ⓜ️ 微软服务", type: "select", proxies: ["DIRECT", "🚀 节点选择"] },
     { name: "🎯 全球直连", type: "select", proxies: ["DIRECT", "🚀 节点选择"] },
@@ -161,15 +163,23 @@ const main = (config) => {
     "RULE-SET,private,🎯 全球直连",
     "RULE-SET,private_ip,🎯 全球直连,no-resolve",
 
+    // 屏蔽 QUIC(UDP 443),强制回落到 TCP。
+    // Google Play 下载默认走 QUIC,若节点对 UDP 支持不好,会一直卡在"等待中/下载中断"
+    "AND,((NETWORK,UDP),(DST-PORT,443)),REJECT",
+
     // Google Play 商店 / 应用下载:强制走代理,放在国内规则之前
-    "DOMAIN-SUFFIX,gvt1.com,🚀 节点选择",
-    "DOMAIN-SUFFIX,gvt2.com,🚀 节点选择",
-    "DOMAIN-SUFFIX,googleapis.com,🚀 节点选择",
-    "DOMAIN-SUFFIX,googleusercontent.com,🚀 节点选择",
-    "DOMAIN,dl.google.com,🚀 节点选择",
-    "DOMAIN-SUFFIX,play.google.com,🚀 节点选择",
-    "DOMAIN-SUFFIX,android.clients.google.com,🚀 节点选择",
-    "DOMAIN-SUFFIX,gstatic.com,🚀 节点选择",
+    "DOMAIN-SUFFIX,gvt1.com,📦 Google Play",
+    "DOMAIN-SUFFIX,gvt2.com,📦 Google Play",
+    "DOMAIN-SUFFIX,googleapis.com,📦 Google Play",
+    "DOMAIN-SUFFIX,googleapis.cn,📦 Google Play",
+    "DOMAIN-SUFFIX,googleusercontent.com,📦 Google Play",
+    "DOMAIN-SUFFIX,ggpht.com,📦 Google Play",
+    "DOMAIN-SUFFIX,dl.google.com,📦 Google Play",
+    "DOMAIN-SUFFIX,dl.l.google.com,📦 Google Play",
+    "DOMAIN-SUFFIX,play.google.com,📦 Google Play",
+    "DOMAIN-SUFFIX,android.clients.google.com,📦 Google Play",
+    "DOMAIN-SUFFIX,mtalk.google.com,📦 Google Play",
+    "DOMAIN-SUFFIX,gstatic.com,📦 Google Play",
 
     "RULE-SET,openai,🤖 AI 服务",
     "RULE-SET,anthropic,🤖 AI 服务",
